@@ -75,7 +75,7 @@ def searchBound(labelArray, axis):
         if encounter:
             endIndex.append(length - 1)
 
-    return np.array(startIndex), np.array(endIndex)
+    return np.array([np.array(startIndex), np.array(endIndex)])
 
 def caluculateClipSize(labelArray, axis, widthSize=None):
     startIndex, endIndex = searchBound(labelArray, axis)
@@ -107,7 +107,7 @@ def caluculateClipSize(labelArray, axis, widthSize=None):
     if end >= length:
         end = length
 
-    return start, end
+    return np.array([start, end])
 
 def caluculateArea(imageArray):
     area = (imageArray > 0).sum()
