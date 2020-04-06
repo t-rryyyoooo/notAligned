@@ -13,18 +13,15 @@ args = None
 
 def ParseArgs():
     parser = argparse.ArgumentParser()
-    """ For main in sliceImage.py """
+
     parser.add_argument("imageDirectory", help="$HOME/Desktop/data/kits19/case_00000")
+    parser.add_argument("modelweightfile", help="Trained model weights file (*.hdf5).")
+    parser.add_argument("savePath", help="Segmented label file.(.mha)")
     parser.add_argument("--widthSize", default=15, type=int)
     parser.add_argument("--paddingSize", default=100, type=int)
     parser.add_argument("--outputImageSize", help="256-256-3", default="256-256-3")
-    parser.add_argument("-s", "--saveSlicePath", help="For main in sliceImage.py, it is not used, but needs writing.", default=None)
-    parser.add_argument("--onlyCancer", action="store_true", help="You do not use it.")
     parser.add_argument("--noFlip", action="store_true")
 
-    """ For main in segmentation.py """
-    parser.add_argument("modelweightfile", help="Trained model weights file (*.hdf5).")
-    parser.add_argument("savePath", help="Segmented label file.(.mha)")
     parser.add_argument("-g", "--gpuid", help="ID of GPU to be used for segmentation. [default=0]", default=0, type=int)
     parser.add_argument("-b", "--batchsize", help="Batch size", default=1, type=int)
 
@@ -33,6 +30,19 @@ def ParseArgs():
     return args
 
 def main(_):
+    """ Slice module. """
+    labelFile = Path(args.imageDirectory) / "segmentation.nii.gz"
+    imageFile = Path(args.imageDirectory) / "imaging.nii.gz"
+
+    label = sitk.ReadImage(str(labelFile))
+    image = sitk.ReadImage(str(imageFile))
+
+    slicer = sler(image, label, outputImageSize = args.outputImageSize, widthSize = args.widthSize, paddingSize = args.paddingSize, noFlip = args.noFlip)
+
+    slicer.execute()
+    _, cuttedImageArrayList = slicer.output("Array")
+
+    """ Segmentation module. """
     config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement = True
@@ -53,10 +63,6 @@ def main(_):
         print('done')
 
 
-    """ Slice image. """
-    imageList, labelList, metaData = sliceImage(args)
-
-    """ Segmentation module """
     segmentedArrayList = [[] for _ in range(2)]
     for i in range(2):
         length = len(imageList[i])
@@ -69,52 +75,14 @@ def main(_):
             segmentedArray = np.squeeze(segmentedArray)
             segmentedArray = np.argmax(segmentedArray, axis=-1).astype(np.uint8)
             segmentedArrayList[i].append(segmentedArray)
-            
 
-            """ For test 
-            labelArray = sitk.GetArrayFromImage(labelList[i][x])
-            segmentedArrayList[i].append(labelArray)
-            """
+    """ Restore module. """
+    segmentedArray = slicer.restore(segmentedArrayList)
 
-
-    """ Restore image. """
-    imagePath = Path(args.imageDirectory) / "imaging.nii.gz"
-    image = sitk.ReadImage(str(imagePath))
-    imageArray = sitk.GetArrayFromImage(image)
-    outputArray = np.zeros_like(imageArray)
-    for i in range(2):
-        length = len(segmentedArrayList[i])
-        largestSlice = metaData[i]["largestSlice"]
-        axialSlice = metaData[i]["axialSlice"]
-        paddingSize = metaData[i]["paddingSize"]
-        largestArray = outputArray[largestSlice, ...]
-        p = (paddingSize, paddingSize)
-        largestArray = np.pad(largestArray, [p, p, (0, 0)], "minimum")
-        largestArray = largestArray[..., axialSlice]
-        for x in tqdm(range(length), desc="Restoring images...", ncols=60):
-            segmented = getImageWithMeta(segmentedArrayList[i][x], labelList[i][x])
-            xSlice = metaData[i]["xSlice"][x]
-            ySlice = metaData[i]["ySlice"][x]
-            restoreSizeX = int(xSlice.stop - xSlice.start)
-            restoreSizeY = int(ySlice.stop - ySlice.start)
-            restoreSize = [restoreSizeX, restoreSizeY]
-            segmented = resampleSize(segmented, restoreSize[::-1], is_label=True)
-            segmentedArray = sitk.GetArrayFromImage(segmented)
-            largestArray[xSlice, ySlice, x] = segmentedArray
-
-        largestArray = largestArray[paddingSize : -paddingSize, 
-                                    paddingSize : -paddingSize, :]
-        
-        if not args.noFlip:
-            if i == 1:
-                largestArray = largestArray[::-1, ...]
-
-        outputArray[largestSlice, :, axialSlice] += largestArray
-
-    output = getImageWithMeta(outputArray, image)
+    segmented = getImageWithMeta(segmentedArray, label)
     createParentPath(args.savePath)
     print("Saving image to {}".format(args.savePath))
-    sitk.WriteImage(output, args.savePath, True)
+    sitk.WriteImage(segmented, args.savepath, True)
 
 
 if __name__ == '__main__':
