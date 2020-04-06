@@ -21,8 +21,6 @@ def ParseArgs():
     return args
 
 def main(args):
-
-    metaData = [{} for _ in range(2)]
     labelFile = Path(args.imageDirectory) / 'segmentation.nii.gz'
     imageFile = Path(args.imageDirectory) / 'imaging.nii.gz'
 
