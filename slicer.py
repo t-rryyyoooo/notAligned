@@ -133,7 +133,6 @@ class slicer():
         extractSliceFilter.SetSize(size)
         extractSliceFilter.SetIndex(index)
         self.sliceImage = extractSliceFilter.Execute(self.image)
-        self.sliceImage.SetDirection((0.0, 1.0, 1.0, 0.0))
 
 
         """ Transform image. """
@@ -154,7 +153,7 @@ class slicer():
                 self.clippedImageList[i].append(clippedImage)
 
                 clippedLabelArray = sitk.GetArrayFromImage(clippedLabel)
-                clipeedImageArray = sitk.GetArrayFromImage(clippedImage)
+                clippedImageArray = sitk.GetArrayFromImage(clippedImage)
 
                 self.clippedLabelArrayList[i][x] = clippedLabelArray
                 self.clippedImageArrayList[i][x] = clippedImageArray
