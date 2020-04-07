@@ -1,0 +1,1 @@
+/home/vmlab/Desktop/data/patch/notAligned/256_256_5_cancer_3d_noFlip/segmentation/original

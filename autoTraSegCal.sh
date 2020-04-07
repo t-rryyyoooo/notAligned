@@ -5,8 +5,8 @@ readonly TEXT="$HOME/Desktop/data/textList"
 readonly WEIGHT="$HOME/Desktop/data/modelweight"
 readonly HISTORY="$HOME/Desktop/data/history"
 readonly LOG="$HOME/Desktop/data/log"
-#readonly NUMBERS=(001 017 020 022 043 082 094 115 120 137 173 174 205 019 023 054 093 096 123 127 136 141 153 188 191 201)
-readonly NUMBERS=(173 002 068 133 155 114 090 105 112 175 183 208 029 065 157 162 141 062 031 156 189 135 020 077 000 009 198 036)
+readonly NUMBERS=(001 017 020 022 043 082 094 115 120 137 173 174 205 019 023 054 093 096 123 127 136 141 153 188 191 201)
+#readonly NUMBERS=(173 002 068 133 155 114 090 105 112 175 183 208 029 065 157 162 141 062 031 156 189 135 020 077 000 009 198 036)
 readonly DATA="$HOME/Desktop/data/kits19"
 readonly SAVE="$HOME/Desktop/data/patch"
 readonly BATCHSIZE=15
@@ -92,7 +92,7 @@ do
   echo "Save:${savePat}"
   echo "GPU_ID:${id}"
 
-  #python3 segmentation.py ${imageDirectory} ${segWeight} ${savePat} -g ${id} --noFlip --outputImageSize ${PATCHSIZE}
+  python3 segmentation.py ${imageDirectory} ${segWeight} ${savePat} -g ${id} --noFlip --outputImageSize ${PATCHSIZE}
 
 done
 
@@ -109,7 +109,7 @@ echo "True:${DATA}"
 echo "Predict:${save}"
 echo "ResultText:${results}"
 
-#python3 caluculateDICE.py ${DATA} ${save} > ${results}
+python3 caluculateDICE.py ${DATA} ${save} > ${results}
 
 if [ $? -eq 0 ]; then
   echo "Done."
