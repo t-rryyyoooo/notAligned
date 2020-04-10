@@ -4,9 +4,9 @@ import argparse
 import os
 import sys
 import tensorflow as tf
-from functions import createParentPath, getImageWithMeta, resampleSize, cancer_dice, kidney_dice, penalty_categorical
+from functions import createParentPath, getImageWithMeta, penalty_categorical, kidney_dice,cancer_dice 
 from pathlib import Path
-from sliceImage import main as sliceImage
+from slicer import slicer as sler
 from tqdm import tqdm
 
 args = None
@@ -65,10 +65,9 @@ def main(_):
 
     segmentedArrayList = [[] for _ in range(2)]
     for i in range(2):
-        length = len(imageList[i])
+        length = len(cuttedImageArrayList[i])
         for x in tqdm(range(length), desc="Segmenting images...", ncols=60):
-            imageArray = sitk.GetArrayFromImage(imageList[i][x])
-
+            imageArray = cuttedImageArrayList[i][x]
             imageArray = imageArray[np.newaxis, ...]
             
             segmentedArray = model.predict(imageArray, batch_size=args.batchsize, verbose=0)
@@ -82,7 +81,7 @@ def main(_):
     segmented = getImageWithMeta(segmentedArray, label)
     createParentPath(args.savePath)
     print("Saving image to {}".format(args.savePath))
-    sitk.WriteImage(segmented, args.savepath, True)
+    sitk.WriteImage(segmented, args.savePath, True)
 
 
 if __name__ == '__main__':
