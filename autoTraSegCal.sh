@@ -11,7 +11,7 @@ readonly DATA="$HOME/Desktop/data/kits19"
 readonly SAVE="$HOME/Desktop/data/patch"
 readonly BATCHSIZE=15
 readonly EPOCH=300
-readonly RESULT="result"
+readonly RESULT="$HOME/Desktop/data/result"
 readonly PATCHSIZE="256-256-5"
 
 # Determine input details.
