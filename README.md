@@ -16,7 +16,9 @@ CT image, label and file with model and weight -> [segmentation.py](#segmentatio
 >- [auto2DUnet.sh](#UNet)
 >- [autoCaluculateDICE.sh](#caluculateDICE)
 >- [autoSegmentation.sh](#segmentation)
+>- [autoSendWeights.sh](#send)
 >- [autoSliceImage.sh](#slice)
+>- [autoTraSegCal.sh](#traSegCal)
 >## .ipynb
 >- [plot.ipynb](#ipynb)
 >- [processing.ipynb](#ipynb)
@@ -35,18 +37,17 @@ CT image, label and file with model and weight -> [segmentation.py](#segmentatio
 >- [merge.py](#merge)
 >- [mergeOneByOne.py](#merge)
 >- [saver.py](#UNet)
->- [segmentationUnetAligned.py](#segmentation)
->- [segmentationUnetInputAs3ch.py](#segmentation)
+>- [segmentation.py](#segmentation)
 >- [sliceImage.py](#slice)
+>- [slicer.py](#slice)
 >## directory
->- [result](#directory)
 >- [test](#directory)
 >- [fail](#directory)
 
 <a name="slice"></a>
-## Make slice images and align the center of gravity of the kidney region in the slice to the center of image and save 3D images and 2D labels.
-We extract kidney region in the CT image and slice it in perpendicular axial direction and align the center of gravity of the kidney region in the slice to the center of image. We transfrom image size into outputSize and save images as 3D, labels as 2D and text file which includes image paths and label paths.  
-
+## Clip kidney region from CT image and slice it in perpwndicular axial direction.  
+Clip kidney region from CT image and slice it in perpwndicular axial direction. We transform image size into outputImageSize and save images as 3D, labela as 2D and text file which includes image paths and label paths.  
+`slicer.py` has class which performs that process.
 `sliceImage.py` does that for one patient (ct image).  
 `autoSliceImage.sh` runs `sliceImage.py` for patients you want.  
 `cut.py` has functions to slice images.  
@@ -67,24 +68,22 @@ On the other hand, `mergeOneByOne.py` determines read files when we run it.
 
 <a name="UNet"></a>
 ## Run Unet.
-`buildUnetAugmentation.py` does machine learning with U-Net.  
+`buildUnet.py` does machine learning with U-Net.  
 `loader.py` has generators.  
 `saver.py` has classes to save weight.  
 `auto2DUnet.sh` is written a part of file paths to input, to save weight and so on.  
 <br>
-When we run `auto2DUnet.sh`, you are requied to type GPU ID and suffix. we can select GPU by GPU ID, and suffix is used to determine paths to input, save weight and so on. And, you are asked "Is the weight file's suffix the same as above?[yes/no]". If you choose yes, above suffix is used when saving weight and so on, if you choose no, you are required to feed suffix which is used when saving weight and so on.  
+When we run `auto2DUnet.sh`, you are requied to type GPU ID and suffix. we can select GPU by GPU ID, and suffix is used to determine paths to input, save weight and so on. And, you are asked "Is the weight file's suffix the same as above?[yes/no]". If you choose yes, above suffix is used when saving weight and so on, if you choose no, you are required to feed suffix which is used when saving weight and so on. Recently I wrote `autoTraSegCal.sh` to integrate training, segmentation and caluculating DICE, then, I change directory structure which `merge.py` should create. So, if you pay attention to args when you run `merge.py`, you can run `auto2DUnet.sh`. But, I recommend that you use `autoTraSegCal.sh`.  
 
 <br>
 <div style="text-align: right;"><a href="#contents">To contents</a></div>
 
 <a name="segmentation"></a>
 ## Segment kidneys and kidney cancers from CT image.
-We feed CT image to `segmentation*.py` and it preprocesses input image. For preprocessed images, it segments kidneys and kidney cancers. Then, it restores the original size by performing the reverse of the preprocessing.So, We remake `segmentation*.py` when we develop new preprocessing.  
+We feed CT image to `segmentation.py` and it preprocesses input image. For preprocessed images, it segments kidneys and kidney cancers. Then, it restores the original size by performing the reverse of the preprocessing.So, We remake `segmentation.py` when we develop new preprocessing.  
 <br>
-`segmentationUnetAligned.py` segments images aligned the center of gravity of the kidney for one patient.  
-`segmentationUnetNotAligned.py` segments images not aligned the center of gravity of the kidney for one patient.  
-`segmentaionUnetInputAs3ch.py` segments aligned images saved as 3ch for one patient.  
-`autoSegmentation.sh` runs `segmentation*.py` for patients you want.  
+`segmentation.py` slices image, segments images and restore image for one patient.  
+`autoSegmentation.sh` runs `segmentation.py` for patients you want. 
 
 <br>
 <div style="text-align: right;"><a href="#contents">To contents</a></div>
@@ -144,7 +143,6 @@ These files are divided by usage, but, in fact, `memo.ipynb` and `plot.ipynb` ar
 
 <a name="directory"></a>
 ## The information of directories.
-`result` has text files written the results of machine learning.  
 `test` is output destination when we test program. It is not sent to github.
 `fail` has text file written the patients execution failed.  
 
